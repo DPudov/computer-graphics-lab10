@@ -3,7 +3,8 @@ package sample;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-@SuppressWarnings("ALL")
+import static sample.LineDrawer.DrawLine;
+
 public class FloatHorizon {
     public static final int INVISIBLE = 0;
     public static final int ABOVE = 1;
@@ -38,93 +39,99 @@ public class FloatHorizon {
         for (int i = 0; i < lowHorizon.length; i++) {
             lowHorizon[i] = height;
         }
-
+        int xPrev, yPrev;
         for (double z = zMax; z >= zMin; z -= zStep) {
-            double xPrev = xMin;
-            double yPrev = Functions.function(func, xPrev, z);
-            Point point = new Point(xPrev, yPrev, z);
+            double yPrevTmp = Functions.function(func, xMin, z);
+
+            Point point = new Point(xMin, yPrevTmp, z);
             point.transform(absX, absY, absZ);
-            xPrev = point.getX();
-            yPrev = point.getY();
-            z = point.getZ();
+            xPrev = (int) point.getX();
+            yPrev = (int) point.getY();
+//            z = point.getZ();
             if (xLeft != -1) {
-                horizon(xLeft, yLeft, (int) xPrev, (int) yPrev, upHorizon, lowHorizon);
+                horizon(xLeft, yLeft, xPrev, yPrev, upHorizon, lowHorizon);
             }
-            xLeft = (int) xPrev;
-            yLeft = (int) yPrev;
+            xLeft = xPrev;
+            yLeft = yPrev;
 
 
-            int prevFlag = visible((int) xPrev, (int) yPrev, upHorizon, lowHorizon);
+            int prevFlag = visible(xPrev, yPrev, upHorizon, lowHorizon);
             double x = xMin;
             double y = yPrev;
             for (; x < xMax; x += xStep) {
-                y = Functions.function(func, x, z);
-                Point p = new Point(x, y, z);
+                double curYTmp = Functions.function(func, x, z);
+                //                y = Functions.function(func, x, z);
+                Point p = new Point(x, curYTmp, z);
                 p.transform(absX, absY, absZ);
-                x = p.getX();
-                y = p.getY();
-                z = p.getZ();
-                int currentFlag = visible((int) x, (int) y, upHorizon, lowHorizon);
+                int curX = (int) p.getX();
+                int curY = (int) p.getY();
+//                x = p.getX();
+//                y = p.getY();
+//                System.out.println(p);
+                int currentFlag = visible(curX, curY, upHorizon, lowHorizon);
                 if (prevFlag == currentFlag) {
                     if (currentFlag == ABOVE || currentFlag == BELOW) {
-                        LineDrawer.DrawLine(gc.getCanvas(), xPrev, yPrev, x, y, color);
-                        horizon((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon, lowHorizon);
+                        DrawLine(gc.getCanvas(), xPrev, yPrev, curX, curY, color);
+                        horizon(xPrev, yPrev, curX, curY, upHorizon, lowHorizon);
                     }
                 } else if (currentFlag == INVISIBLE) {
                     Point inter;
                     if (prevFlag == ABOVE) {
-                        inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon);
+                        inter = intersection(xPrev, yPrev, curX, curY, upHorizon);
                     } else {
-                        inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, lowHorizon);
+                        inter = intersection(xPrev, yPrev, curX, curY, lowHorizon);
                     }
-                    double xi = inter.getX(), yi = inter.getY();
-                    LineDrawer.DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
-                    horizon((int) xPrev, (int) yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
-                } else if (currentFlag == ABOVE) {
-                    if (prevFlag == INVISIBLE) {
-                        Point inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon);
-                        double xi = inter.getX();
-                        double yi = inter.getY();
-                        LineDrawer.DrawLine(gc.getCanvas(), xi, yi, x, y, color);
-                        horizon((int) xi, (int) yi, (int) x, (int) y, upHorizon, lowHorizon);
-                    } else {
-                        Point inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, lowHorizon);
-                        double xi = inter.getX(), yi = inter.getY();
-                        LineDrawer.DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
-                        horizon((int) xPrev, (int) yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
-                        inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon);
-                        xi = inter.getX();
-                        yi = inter.getY();
-                        LineDrawer.DrawLine(gc.getCanvas(), xi, yi, x, y, color);
-                        horizon((int) xi, (int) yi, (int) x, (int) y, upHorizon, lowHorizon);
-                    }
-                } else if (prevFlag == INVISIBLE) {
-                    Point inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon);
                     double xi = inter.getX();
                     double yi = inter.getY();
-                    LineDrawer.DrawLine(gc.getCanvas(), xi, yi, x, y, color);
-                    horizon((int) xi, (int) yi, (int) x, (int) y, upHorizon, lowHorizon);
+                    DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
+                    horizon(xPrev, yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
+                } else if (currentFlag == ABOVE) {
+                    if (prevFlag == INVISIBLE) {
+                        Point inter = intersection(xPrev, yPrev, curX, curY, upHorizon);
+                        double xi = inter.getX();
+                        double yi = inter.getY();
+                        DrawLine(gc.getCanvas(), xi, yi, curX, curY, color);
+                        horizon((int) xi, (int) yi, curX, curY, upHorizon, lowHorizon);
+                    } else {
+                        Point inter = intersection(xPrev, yPrev, curX, curY, lowHorizon);
+                        double xi = inter.getX();
+                        double yi = inter.getY();
+                        DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
+                        horizon(xPrev, yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
+                        inter = intersection(xPrev, yPrev, curX, curY, upHorizon);
+                        xi = inter.getX();
+                        yi = inter.getY();
+                        DrawLine(gc.getCanvas(), xi, yi, curX, curY, color);
+                        horizon((int) xi, (int) yi, curX, curY, upHorizon, lowHorizon);
+                    }
+                } else if (prevFlag == INVISIBLE) {
+                    Point inter = intersection(xPrev, yPrev, curX, curY, lowHorizon);
+                    double xi = inter.getX();
+                    double yi = inter.getY();
+                    DrawLine(gc.getCanvas(), xi, yi, curX, curY, color);
+                    horizon((int) xi, (int) yi, curX, curY, upHorizon, lowHorizon);
                 } else {
-                    Point inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, upHorizon);
-                    double xi = inter.getX(), yi = inter.getY();
-                    LineDrawer.DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
-                    horizon((int) xPrev, (int) yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
-                    inter = intersection((int) xPrev, (int) yPrev, (int) x, (int) y, lowHorizon);
+                    Point inter = intersection(xPrev, yPrev, curX, curY, upHorizon);
+                    double xi = inter.getX();
+                    double yi = inter.getY();
+                    DrawLine(gc.getCanvas(), xPrev, yPrev, xi, yi, color);
+                    horizon(xPrev, yPrev, (int) xi, (int) yi, upHorizon, lowHorizon);
+                    inter = intersection(xPrev, yPrev, curX, curY, lowHorizon);
                     xi = inter.getX();
                     yi = inter.getY();
-                    LineDrawer.DrawLine(gc.getCanvas(), xi, yi, x, y, color);
-                    horizon((int) xi, (int) yi, (int) x, (int) y, upHorizon, lowHorizon);
+                    DrawLine(gc.getCanvas(), xi, yi, curX, curY, color);
+                    horizon((int) xi, (int) yi, curX, curY, upHorizon, lowHorizon);
                 }
                 prevFlag = currentFlag;
-                xPrev = x;
-                yPrev = y;
+                xPrev = curX;
+                yPrev = curY;
             }
 
             if (xRight != BELOW) {
-                horizon(xRight, yRight, (int) x, (int) y, upHorizon, lowHorizon);
+                horizon(xRight, yRight, xPrev, yPrev, upHorizon, lowHorizon);
             }
-            xRight = (int) x;
-            yRight = (int) y;
+            xRight = xPrev;
+            yRight = yPrev;
         }
     }
 
