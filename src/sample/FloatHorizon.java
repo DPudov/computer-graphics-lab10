@@ -58,6 +58,10 @@ public class FloatHorizon {
         setzMin(zMin);
         Point.setHeight(height);
         Point.setWidth(width);
+        Point.setxMax(xMax);
+        Point.setxMin(xMin);
+        Point.setyMax(yMax);
+        Point.setyMin(yMin);
         for (int i = 0; i < upHorizon.length; i++) {
             upHorizon[i] = 0;
         }
@@ -156,6 +160,9 @@ public class FloatHorizon {
     }
 
     private int visible(int x, int y, int[] upHorizon, int[] lowHorizon) {
+        if (x < 0 || x >= upHorizon.length) {
+            return INVISIBLE;
+        }
         if (y < upHorizon[x] && y > lowHorizon[x]) {
             return INVISIBLE;
         }
@@ -195,6 +202,9 @@ public class FloatHorizon {
     }
 
     private Point intersection(int x1, int y1, int x2, int y2, int[] horizon) {
+        if (x1 < 0 || x1 >= horizon.length || x2 < 0 || x2 >= horizon.length) {
+            return new Point(x1, y1);
+        }
         double xi = x1;
         double yi = y1;
         int deltaX = x2 - x1;

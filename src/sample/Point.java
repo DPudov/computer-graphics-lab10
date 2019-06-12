@@ -5,6 +5,10 @@ public class Point {
     protected double[] e;
     private static int width = 600;
     private static int height = 600;
+    private static double xMax = 2;
+    private static double xMin = -2;
+    private static double yMax = 5;
+    private static double yMin = -5;
 
     public Point(double x, double y, double z) {
         e = new double[3];
@@ -41,6 +45,38 @@ public class Point {
 
     public static void setHeight(int height) {
         Point.height = height;
+    }
+
+    public static double getxMax() {
+        return xMax;
+    }
+
+    public static void setxMax(double xMax) {
+        Point.xMax = xMax;
+    }
+
+    public static double getxMin() {
+        return xMin;
+    }
+
+    public static void setxMin(double xMin) {
+        Point.xMin = xMin;
+    }
+
+    public static double getyMax() {
+        return yMax;
+    }
+
+    public static void setyMax(double yMax) {
+        Point.yMax = yMax;
+    }
+
+    public static double getyMin() {
+        return yMin;
+    }
+
+    public static void setyMin(double yMin) {
+        Point.yMin = yMin;
     }
 
     public double getX() {
@@ -140,13 +176,15 @@ public class Point {
     }
 
     public void transform(double absX, double absY, double absZ) {
-        double k = 100;
-        double centX = (double) width / 2;
-        double centY = (double) height / 2;
+//        double k = 100;
+//        double centX = (double) width / 2;
+//        double centY = (double) height / 2;
         rotateOX(absX);
         rotateOY(absY);
         rotateOZ(absZ);
-        e[0] = (e[0] * k + centX);
-        e[1] = (e[1] * k + centY);
+//        e[0] = (e[0] * k + centX);
+//        e[1] = (e[1] * k + centY);
+        e[0] = width / (xMax - xMin) * (e[0] - xMin);
+        e[1] = height - height / (yMax - yMin) * (e[1] - yMin);
     }
 }
