@@ -1,13 +1,22 @@
 package sample;
 
+import javafx.animation.AnimationTimer;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Controller {
+    @FXML
+    GridPane mainScene;
     @FXML
     ColorPicker backgroundPicker;
     @FXML
@@ -41,25 +50,22 @@ public class Controller {
     @FXML
     Canvas canvas;
 
-    private double absX = 0;
-    private double absY = 0;
-    private double absZ = 0;
+    private ArrayList<FloatHorizon> horizons = new ArrayList<>();
+    private boolean goNorth = false;
+    private boolean goSouth = false;
+    private boolean goWest = false;
+    private boolean goEast = false;
 
     @FXML
     public void initialize() {
         setupColors();
         setupCaptions();
         clearAllButton.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            absX = 0;
-            absY = 0;
-            absZ = 0;
+            horizons.clear();
             clearCanvas();
         });
 
         drawButton.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
-            absX = 0;
-            absY = 0;
-            absZ = 0;
             draw();
         });
 
@@ -68,15 +74,118 @@ public class Controller {
                 double thetaX = Double.parseDouble(inputOXRotateField.getText());
                 double thetaY = Double.parseDouble(inputOYRotateField.getText());
                 double thetaZ = Double.parseDouble(inputOZRotateField.getText());
-                absX += thetaX;
-                absY += thetaY;
-                absZ += thetaZ;
+                for (FloatHorizon horizon : horizons) {
+                    horizon.setAbsX(horizon.getAbsX() + thetaX);
+                    horizon.setAbsY(horizon.getAbsY() + thetaY);
+                    horizon.setAbsZ(horizon.getAbsZ() + thetaZ);
+                }
             } catch (Exception e) {
                 setAlert("Ошибка ввода!");
             }
             clearCanvas();
-            draw();
+            redraw();
         });
+
+        mainScene.setOnKeyPressed(keyEvent -> {
+            switch (keyEvent.getCode()) {
+                case W:
+                    goNorth = true;
+                    break;
+                case A:
+                    goWest = true;
+                    break;
+                case S:
+                    goSouth = true;
+                    break;
+                case D:
+                    goEast = true;
+                    break;
+
+                case UP:
+                    goNorth = true;
+                    break;
+                case DOWN:
+                    goSouth = true;
+                    break;
+                case LEFT:
+                    goWest = true;
+                    break;
+                case RIGHT:
+                    goEast = true;
+                    break;
+            }
+        });
+
+        mainScene.setOnKeyReleased(keyEvent -> {
+            switch (keyEvent.getCode()) {
+                case W:
+                    goNorth = false;
+                    break;
+                case A:
+                    goWest = false;
+                    break;
+                case S:
+                    goSouth = false;
+                    break;
+                case D:
+                    goEast = false;
+                    break;
+
+                case UP:
+                    goNorth = false;
+                    break;
+                case DOWN:
+                    goSouth = false;
+                    break;
+                case LEFT:
+                    goWest = false;
+                    break;
+                case RIGHT:
+                    goEast = false;
+                    break;
+            }
+        });
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                int thetaX = 0, thetaY = 0, thetaZ = 0;
+
+                if (goNorth) {
+                    thetaX += 2;
+                }
+                if (goSouth) {
+                    thetaX -= 2;
+                }
+                if (goEast) {
+                    thetaY += 2;
+                }
+                if (goWest) {
+                    thetaY -= 2;
+                }
+
+                for (FloatHorizon horizon : horizons) {
+                    horizon.setAbsX(horizon.getAbsX() + thetaX);
+                    horizon.setAbsY(horizon.getAbsY() + thetaY);
+                    horizon.setAbsZ(horizon.getAbsZ() + thetaZ);
+                }
+                clearCanvas();
+                redraw();
+            }
+        };
+        timer.start();
+    }
+
+    private void redraw() {
+        for (FloatHorizon f : horizons) {
+            f.floatHorizon(canvas.getGraphicsContext2D(),
+                    functionPicker.getSelectionModel().getSelectedIndex(),
+                    f.getxMin(), f.getxMax(), f.getxStep(),
+                    f.getzMin(), f.getzMax(), f.getzStep(),
+                    curvePicker.getValue(),
+                    f.getAbsX(), f.getAbsY(), f.getAbsZ());
+        }
+
     }
 
     private void setupCaptions() {
@@ -89,6 +198,18 @@ public class Controller {
         inputOXRotateField.setText("0");
         inputOYRotateField.setText("0");
         inputOZRotateField.setText("0");
+
+        ObservableList<String> funcs = FXCollections.observableList(
+                Arrays.asList(
+                        "cos^2(x) - sin^2(z)",
+                        "sqrt(x^2 + z^2) * sinc(sqrt(x^2 + z^2))",
+                        "sinc(sin(x^2 + z^2))"
+//                        DrawAlgorithms.ALG_BRESENHAM,
+//                        DrawAlgorithms.ALG_MIDDLE_POINT,
+//                        DrawAlgorithms.ALG_LIB
+                ));
+        functionPicker.setItems(funcs);
+        functionPicker.getSelectionModel().selectFirst();
     }
 
     private void draw() {
@@ -107,13 +228,15 @@ public class Controller {
                 return;
             }
 
-
-            FloatHorizon.floatHorizon(gc,
-                    0,
+            FloatHorizon f = new FloatHorizon(xMax, xMin, -5, 5, (int) canvas.getWidth(),
+                    (int) canvas.getHeight());
+            f.floatHorizon(gc,
+                    functionPicker.getSelectionModel().getSelectedIndex(),
                     xMin, xMax, xStep,
                     zMin, zMax, zStep,
                     curvePicker.getValue(),
-                    absX, absY, absZ);
+                    0, 0, 0);
+            horizons.add(f);
         } catch (Exception e) {
             e.printStackTrace();
             setAlert("Ошибка ввода!");

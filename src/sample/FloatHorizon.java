@@ -6,20 +6,36 @@ import javafx.scene.paint.Color;
 import static sample.LineDrawer.DrawLine;
 
 public class FloatHorizon {
-    public static final int INVISIBLE = 0;
-    public static final int ABOVE = 1;
-    public static final int BELOW = -1;
-    private static double xMax = 2;
-    private static double xMin = -2;
-    private static double yMax = 5;
-    private static double yMin = -5;
-    private static int width = 600;
-    private static int height = 600;
+    private static final int INVISIBLE = 0;
+    private static final int ABOVE = 1;
+    private static final int BELOW = -1;
+    private double xMax = 2;
+    private double xMin = -2;
+    private double yMax = 5;
+    private double yMin = -5;
+    private int width = 600;
+    private int height = 600;
+    private double absX = 0;
+    private double absY = 0;
+    private double absZ = 0;
+    private double xStep = 1;
+    private double zStep = 1;
+    private double zMin = 0;
+    private double zMax = 1;
 
-    public static void floatHorizon(GraphicsContext gc, int func,
-                                    double xMin, double xMax, double xStep,
-                                    double zMin, double zMax, double zStep, Color color,
-                                    double absX, double absY, double absZ) {
+    public FloatHorizon(double xMax, double xMin, double yMax, double yMin, int width, int height) {
+        this.xMax = xMax;
+        this.xMin = xMin;
+        this.yMax = yMax;
+        this.yMin = yMin;
+        this.width = width;
+        this.height = height;
+    }
+
+    public void floatHorizon(GraphicsContext gc, int func,
+                             double xMin, double xMax, double xStep,
+                             double zMin, double zMax, double zStep, Color color,
+                             double absX, double absY, double absZ) {
 
         int width = (int) gc.getCanvas().getWidth();
         int height = (int) gc.getCanvas().getHeight();
@@ -29,10 +45,19 @@ public class FloatHorizon {
         int yLeft = BELOW;
         int xRight = BELOW;
         int yRight = BELOW;
-        FloatHorizon.xMax = xMax;
-        FloatHorizon.xMin = xMin;
-        FloatHorizon.width = width;
-        FloatHorizon.height = height;
+        setxMax(xMax);
+        setxMin(xMin);
+        setWidth(width);
+        setHeight(height);
+        setAbsX(absX);
+        setAbsY(absY);
+        setAbsZ(absZ);
+        setxStep(xStep);
+        setzStep(zStep);
+        setzMax(zMax);
+        setzMin(zMin);
+        Point.setHeight(height);
+        Point.setWidth(width);
         for (int i = 0; i < upHorizon.length; i++) {
             upHorizon[i] = 0;
         }
@@ -47,7 +72,6 @@ public class FloatHorizon {
             point.transform(absX, absY, absZ);
             xPrev = (int) point.getX();
             yPrev = (int) point.getY();
-//            z = point.getZ();
             if (xLeft != -1) {
                 horizon(xLeft, yLeft, xPrev, yPrev, upHorizon, lowHorizon);
             }
@@ -60,14 +84,10 @@ public class FloatHorizon {
             double y = yPrev;
             for (; x < xMax; x += xStep) {
                 double curYTmp = Functions.function(func, x, z);
-                //                y = Functions.function(func, x, z);
                 Point p = new Point(x, curYTmp, z);
                 p.transform(absX, absY, absZ);
                 int curX = (int) p.getX();
                 int curY = (int) p.getY();
-//                x = p.getX();
-//                y = p.getY();
-//                System.out.println(p);
                 int currentFlag = visible(curX, curY, upHorizon, lowHorizon);
                 if (prevFlag == currentFlag) {
                     if (currentFlag == ABOVE || currentFlag == BELOW) {
@@ -135,7 +155,7 @@ public class FloatHorizon {
         }
     }
 
-    private static int visible(int x, int y, int[] upHorizon, int[] lowHorizon) {
+    private int visible(int x, int y, int[] upHorizon, int[] lowHorizon) {
         if (y < upHorizon[x] && y > lowHorizon[x]) {
             return INVISIBLE;
         }
@@ -148,7 +168,7 @@ public class FloatHorizon {
         return INVISIBLE;
     }
 
-    public static void horizon(int x1, int y1, int x2, int y2, int[] up, int[] low) {
+    private void horizon(int x1, int y1, int x2, int y2, int[] up, int[] low) {
         if (x1 < 0 || x1 >= up.length || x2 < 0 || x2 >= up.length) {
             return;
         }
@@ -165,15 +185,7 @@ public class FloatHorizon {
         }
     }
 
-    public static int screenX(int width, double xMax, double xMin, int x) {
-        return (int) (width / (xMax - xMin) * (x - xMin));
-    }
-
-    public static int screenY(int height, double yMax, double yMin, int y) {
-        return (int) (height - height / (yMax - yMin) * (y - yMin));
-    }
-
-    private static int sign(double x) {
+    private int sign(double x) {
         if (x > 0) {
             return 1;
         } else if (x == 0) {
@@ -182,7 +194,7 @@ public class FloatHorizon {
         return -1;
     }
 
-    public static Point intersection(int x1, int y1, int x2, int y2, int[] horizon) {
+    private Point intersection(int x1, int y1, int x2, int y2, int[] horizon) {
         double xi = x1;
         double yi = y1;
         int deltaX = x2 - x1;
@@ -194,8 +206,6 @@ public class FloatHorizon {
             yi = horizon[x2];
             return new Point(xi, yi);
         } else if (y1 == horizon[x1] && y2 == horizon[x2]) {
-            xi = x1;
-            yi = y1;
             return new Point(xi, yi);
         } else {
             tan = (double) deltaY / (double) deltaX;
@@ -205,5 +215,109 @@ public class FloatHorizon {
 
         return new Point(xi, yi);
 
+    }
+
+    public double getxMax() {
+        return xMax;
+    }
+
+    public void setxMax(double xMax) {
+        this.xMax = xMax;
+    }
+
+    public double getxMin() {
+        return xMin;
+    }
+
+    public void setxMin(double xMin) {
+        this.xMin = xMin;
+    }
+
+    public double getyMax() {
+        return yMax;
+    }
+
+    public void setyMax(double yMax) {
+        this.yMax = yMax;
+    }
+
+    public double getyMin() {
+        return yMin;
+    }
+
+    public void setyMin(double yMin) {
+        this.yMin = yMin;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public double getAbsX() {
+        return absX;
+    }
+
+    public void setAbsX(double absX) {
+        this.absX = absX;
+    }
+
+    public double getAbsY() {
+        return absY;
+    }
+
+    public void setAbsY(double absY) {
+        this.absY = absY;
+    }
+
+    public double getAbsZ() {
+        return absZ;
+    }
+
+    public void setAbsZ(double absZ) {
+        this.absZ = absZ;
+    }
+
+    public double getxStep() {
+        return xStep;
+    }
+
+    public void setxStep(double xStep) {
+        this.xStep = xStep;
+    }
+
+    public double getzStep() {
+        return zStep;
+    }
+
+    public void setzStep(double zStep) {
+        this.zStep = zStep;
+    }
+
+    public double getzMin() {
+        return zMin;
+    }
+
+    public void setzMin(double zMin) {
+        this.zMin = zMin;
+    }
+
+    public double getzMax() {
+        return zMax;
+    }
+
+    public void setzMax(double zMax) {
+        this.zMax = zMax;
     }
 }

@@ -3,6 +3,8 @@ package sample;
 public class Point {
     public static Point Zero = new Point(0, 0, 0);
     protected double[] e;
+    private static int width = 600;
+    private static int height = 600;
 
     public Point(double x, double y, double z) {
         e = new double[3];
@@ -23,6 +25,22 @@ public class Point {
         e[0] = p.getX();
         e[1] = p.getY();
         e[2] = p.getZ();
+    }
+
+    public static int getWidth() {
+        return width;
+    }
+
+    public static void setWidth(int width) {
+        Point.width = width;
+    }
+
+    public static int getHeight() {
+        return height;
+    }
+
+    public static void setHeight(int height) {
+        Point.height = height;
     }
 
     public double getX() {
@@ -122,9 +140,9 @@ public class Point {
     }
 
     public void transform(double absX, double absY, double absZ) {
-        double k = 60;
-        double centX = 300;
-        double centY = 300;
+        double k = 100;
+        double centX = (double) width / 2;
+        double centY = (double) height / 2;
         rotateOX(absX);
         rotateOY(absY);
         rotateOZ(absZ);
