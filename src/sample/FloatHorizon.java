@@ -76,7 +76,8 @@ public class FloatHorizon {
             point.transform(absX, absY, absZ);
             xPrev = (int) point.getX();
             yPrev = (int) point.getY();
-            if (xLeft != -1) {
+            if (xLeft != BELOW) {
+                DrawLine(gc.getCanvas(), xLeft, yLeft, xPrev, yPrev, color);
                 horizon(xLeft, yLeft, xPrev, yPrev, upHorizon, lowHorizon);
             }
             xLeft = xPrev;
@@ -152,6 +153,7 @@ public class FloatHorizon {
             }
 
             if (xRight != BELOW) {
+                DrawLine(gc.getCanvas(), xRight, yRight, xPrev, yPrev, color);
                 horizon(xRight, yRight, xPrev, yPrev, upHorizon, lowHorizon);
             }
             xRight = xPrev;

@@ -203,10 +203,11 @@ public class Controller {
                 Arrays.asList(
                         "cos^2(x) - sin^2(z)",
                         "sqrt(x^2 + z^2) * sinc(sqrt(x^2 + z^2))",
-                        "sinc(sin(x^2 + z^2))"
-//                        DrawAlgorithms.ALG_BRESENHAM,
-//                        DrawAlgorithms.ALG_MIDDLE_POINT,
-//                        DrawAlgorithms.ALG_LIB
+                        "sinc(sin(x^2 + z^2))",
+                        "Лестница",
+                        "Пирамидка",
+                        "Буква А",
+                        "Огненный маяк\ntan(sqrt(x^2+z^2)/3 + sqrt(x^2+z^2)"
                 ));
         functionPicker.setItems(funcs);
         functionPicker.getSelectionModel().selectFirst();
